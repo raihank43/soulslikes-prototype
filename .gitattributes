@@ -83,8 +83,9 @@ Packages/packages-lock.json linguist-generated
 *.collada               lfs
 *.dae                   lfs
 *.dxf                   lfs
-*.FBX                   lfs
-*.fbx                   lfs
+# *.FBX / *.fbx untracked from LFS — kept as regular blobs while prototype FBXs are small
+# *.FBX                   lfs
+# *.fbx                   lfs
 *.jas                   lfs
 *.lws                   lfs
 *.lxo                   lfs

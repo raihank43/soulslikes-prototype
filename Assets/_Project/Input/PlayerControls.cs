@@ -237,7 +237,7 @@ namespace Soulslike.Input
                     ""id"": ""8f2e6cfe-7c40-48a5-8669-dc0d259b6f7d"",
                     ""path"": ""<Gamepad>/leftStick"",
                     ""interactions"": """",
-                    ""processors"": """",
+                    ""processors"": ""stickDeadzone(min=0.15,max=0.95)"",
                     ""groups"": """",
                     ""action"": ""Move"",
                     ""isComposite"": false,

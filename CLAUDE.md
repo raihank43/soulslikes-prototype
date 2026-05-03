@@ -109,3 +109,19 @@ Imported asset packs (Mixamo, Asset Store, etc.) live at the root of `Assets/` w
 
 - **InputActionImporter wrapper-codegen settings written into `.meta` YAML do not survive Unity's first import.** Setting `m_GenerateWrapperCode: 1` in the meta gets reset to `False` on import. Fix: write the meta, then programmatically set the importer fields via `SerializedObject` and call `SaveAndReimport()` (or toggle "Generate C# Class" in the inspector). Do this anytime a new `.inputactions` asset is added.
 - **MCP scene mutations made during Unity Play mode go into the play-mode-only scene instance and are lost on Play exit.** Always exit Play before scene edits, and call `manage_scene save` after `manage_gameobject create` so the change hits disk, not just the in-memory scene.
+
+### Day 1 — Character & animator
+
+- **Player hierarchy:** root `Player` (Rigidbody, CapsuleCollider, PlayerController) → child `Y Bot` (Animator with `PlayerLocomotion.controller`, **Apply Root Motion: off**). Player root drives position/rotation; the mesh is purely visual. PlayerController auto-resolves the Animator via `GetComponentInChildren` if not assigned.
+- **Animator contract — locomotion blend tree:** parameter `Speed` (float). 1D thresholds: 0.0=Idle, 0.5=Walking, 1.0=Run Forward, 2.0=Sprinting. PlayerController writes `Speed` with damping each FixedUpdate. Future combat/dodge/hit states should go on a **separate Animator layer with mask**, not into this state machine.
+- **Apply Root Motion is OFF globally** for locomotion. Day 5 (dodge roll) and Day 3 (attacks) may want it ON for specific states — flip per-state via `OnAnimatorMove` or an animator state hook, not by re-enabling globally.
+- **Move input shaping:** `stickDeadzone(min=0.15,max=0.95)` on the gamepad Move binding (filters hardware noise). `moveDeadzone=0.3` in PlayerController hides the bottom 30% of stick travel as idle, then post-deadzone magnitude is floored at 0.5 so any movement is at minimum a full Walk anim — no zombie-shuffle range.
+- **Backward clips (`Walking Backwards`, `Running Backward`) imported but unwired.** They enter a 2D blend tree on Day 2 once lock-on stops rotation-to-movement.
+
+### Gotchas hit on Day 1
+
+- **`Rigidbody.MoveRotation` accumulates `angularVelocity`.** After several rotated ticks, the rb keeps spinning even after input stops. Zero `rb.angularVelocity` at the top of FixedUpdate when driving rotation authoritatively. (Symptom: character spins on its own during idle after running.)
+- **Use `Quaternion.RotateTowards`, not `Slerp`, for chase-rotation.** Slerp oscillates at the 180° antipodal point depending on quaternion sign. RotateTowards commits to one direction at a constant max rate.
+- **Stick noise produces visible root yaw wobble (head/hips appear to shake).** Beyond `stickDeadzone`, add an angle deadband in PlayerController — skip rotation if `angleToTarget < 1.5°`. Bone-level gait sway in Mixamo locomotion clips is intentional and not addressed by this — Day 2's Cinemachine composer dampening masks the visual residue.
+- **Mixamo FBX importers need their `clipAnimations` set programmatically before first import** — same shape as Day 0's wrapper-codegen meta gotcha. Loop Time on the imported clip won't serialize unless you assign `imp.clipAnimations = imp.defaultClipAnimations` after editing fields, then `SaveAndReimport()`.
+- **Y Bot pivot is ~2cm above feet.** Whoever swaps in a different humanoid model (Day 4 enemy) will need to nudge the mesh's local Y to align feet with collider bottom; don't assume model origin == feet.
