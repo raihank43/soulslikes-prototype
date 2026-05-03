@@ -1,0 +1,28 @@
+using UnityEngine;
+
+namespace Soulslike.Combat
+{
+    public class EnemyHealth : MonoBehaviour
+    {
+        [SerializeField] private int maxHealth = 100;
+
+        public int CurrentHealth { get; private set; }
+        public bool IsDead => CurrentHealth <= 0;
+
+        private void Awake()
+        {
+            CurrentHealth = maxHealth;
+        }
+
+        public void TakeDamage(int amount)
+        {
+            if (IsDead) return;
+            CurrentHealth = Mathf.Max(0, CurrentHealth - amount);
+            Debug.Log($"{name} took {amount} dmg → {CurrentHealth}/{maxHealth}");
+            if (IsDead)
+            {
+                Debug.Log($"{name} died");
+            }
+        }
+    }
+}

@@ -129,7 +129,7 @@ Packages/packages-lock.json linguist-generated
 *.jpeg                  lfs
 *.jpg                   lfs
 *.pict                  lfs
-*.png                   lfs
+# *.png                   lfs  (LFS quota exhausted — kept as regular blob)
 *.psd                   lfs
 *.tga                   lfs
 *.tif                   lfs

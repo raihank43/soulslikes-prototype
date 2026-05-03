@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 using Soulslike.Input;
+using Soulslike.Combat;
 
 namespace Soulslike.Player
 {
@@ -18,15 +19,21 @@ namespace Soulslike.Player
         [Header("Animation")]
         [SerializeField] private Animator animator;
         [SerializeField] private float speedDampTime = 0.1f;
+        [SerializeField] private float strafeDampTime = 0.1f;
 
         [Header("References")]
         [SerializeField] private Transform cameraTransform;
+        [SerializeField] private LockOnSystem lockOn;
 
         private Rigidbody rb;
         private PlayerControls controls;
         private Vector2 moveInput;
         private bool sprintToggled;
-        private static readonly int SpeedHash = Animator.StringToHash("Speed");
+
+        private static readonly int SpeedHash    = Animator.StringToHash("Speed");
+        private static readonly int MoveXHash    = Animator.StringToHash("MoveX");
+        private static readonly int MoveYHash    = Animator.StringToHash("MoveY");
+        private static readonly int IsLockedHash = Animator.StringToHash("IsLocked");
 
         private void Awake()
         {
@@ -39,6 +46,10 @@ namespace Soulslike.Player
             {
                 animator = GetComponentInChildren<Animator>();
             }
+            if (lockOn == null)
+            {
+                lockOn = GetComponent<LockOnSystem>();
+            }
 
             controls = new PlayerControls();
             controls.Player.Move.performed += OnMovePerformed;
@@ -46,15 +57,8 @@ namespace Soulslike.Player
             controls.Player.Sprint.performed += OnSprintPerformed;
         }
 
-        private void OnEnable()
-        {
-            controls.Player.Enable();
-        }
-
-        private void OnDisable()
-        {
-            controls.Player.Disable();
-        }
+        private void OnEnable() => controls.Player.Enable();
+        private void OnDisable() => controls.Player.Disable();
 
         private void OnDestroy()
         {
@@ -75,22 +79,12 @@ namespace Soulslike.Player
         {
             rb.angularVelocity = Vector3.zero;
 
+            bool isLocked = lockOn != null && lockOn.IsLocked;
+            if (animator != null) animator.SetBool(IsLockedHash, isLocked);
+
             float h = moveInput.x;
             float v = moveInput.y;
             float rawMag = Mathf.Clamp01(moveInput.magnitude);
-
-            if (rawMag < moveDeadzone)
-            {
-                Vector3 stop = rb.linearVelocity;
-                stop.x = 0f;
-                stop.z = 0f;
-                rb.linearVelocity = stop;
-                WriteAnimatorSpeed(0f);
-                return;
-            }
-
-            float remapped = Mathf.InverseLerp(moveDeadzone, 1f, rawMag);
-            float inputMag = Mathf.Lerp(0.5f, 1f, remapped);
 
             Vector3 forward = cameraTransform != null ? cameraTransform.forward : Vector3.forward;
             Vector3 right = cameraTransform != null ? cameraTransform.right : Vector3.right;
@@ -99,33 +93,82 @@ namespace Soulslike.Player
             forward.Normalize();
             right.Normalize();
 
-            Vector3 move = Vector3.ClampMagnitude(forward * v + right * h, 1f);
+            if (rawMag < moveDeadzone)
+            {
+                Vector3 stop = rb.linearVelocity;
+                stop.x = 0f;
+                stop.z = 0f;
+                rb.linearVelocity = stop;
+                WriteAnimSpeed(0f);
+                WriteAnimStrafe(0f, 0f);
+                if (isLocked) FaceTarget();
+                return;
+            }
 
-            bool isSprinting = sprintToggled && inputMag >= sprintStickThreshold;
+            float remapped = Mathf.InverseLerp(moveDeadzone, 1f, rawMag);
+            float inputMag = Mathf.Lerp(0.5f, 1f, remapped);
+
+            Vector3 move = Vector3.ClampMagnitude(forward * v + right * h, 1f);
+            bool isSprinting = sprintToggled && inputMag >= sprintStickThreshold && !isLocked;
             float groundSpeed = isSprinting ? sprintSpeed : walkSpeed * inputMag;
-            float animSpeed = isSprinting ? 2f : inputMag;
 
             Vector3 velocity = move.normalized * groundSpeed;
             velocity.y = rb.linearVelocity.y;
             rb.linearVelocity = velocity;
 
-            if (move.sqrMagnitude > 0.01f)
+            if (isLocked)
             {
-                Quaternion targetRot = Quaternion.LookRotation(move.normalized, Vector3.up);
-                float angleToTarget = Quaternion.Angle(rb.rotation, targetRot);
-                if (angleToTarget > rotationAngleDeadband)
-                {
-                    rb.MoveRotation(Quaternion.RotateTowards(rb.rotation, targetRot, rotationSpeed * 60f * Time.fixedDeltaTime));
-                }
+                FaceTarget();
+                Vector3 localDir = move.sqrMagnitude > 0.0001f
+                    ? transform.InverseTransformDirection(move.normalized)
+                    : Vector3.zero;
+                float magScale = isSprinting ? 1f : inputMag;
+                WriteAnimStrafe(Mathf.Clamp(localDir.x * magScale, -1f, 1f),
+                                Mathf.Clamp(localDir.z * magScale, -1f, 1f));
+                WriteAnimSpeed(0f);
             }
-
-            WriteAnimatorSpeed(animSpeed);
+            else
+            {
+                if (move.sqrMagnitude > 0.01f)
+                {
+                    Quaternion targetRot = Quaternion.LookRotation(move.normalized, Vector3.up);
+                    float angleToTarget = Quaternion.Angle(rb.rotation, targetRot);
+                    if (angleToTarget > rotationAngleDeadband)
+                    {
+                        rb.MoveRotation(Quaternion.RotateTowards(rb.rotation, targetRot, rotationSpeed * 60f * Time.fixedDeltaTime));
+                    }
+                }
+                float animSpeed = isSprinting ? 2f : inputMag;
+                WriteAnimSpeed(animSpeed);
+                WriteAnimStrafe(0f, 0f);
+            }
         }
 
-        private void WriteAnimatorSpeed(float target)
+        private void FaceTarget()
+        {
+            if (lockOn == null || lockOn.CurrentTarget == null) return;
+            Vector3 toTarget = lockOn.CurrentTarget.position - transform.position;
+            toTarget.y = 0f;
+            if (toTarget.sqrMagnitude < 0.01f) return;
+            Quaternion targetRot = Quaternion.LookRotation(toTarget.normalized, Vector3.up);
+            float angleToTarget = Quaternion.Angle(rb.rotation, targetRot);
+            if (angleToTarget > rotationAngleDeadband)
+            {
+                rb.MoveRotation(Quaternion.RotateTowards(rb.rotation, targetRot, rotationSpeed * 60f * Time.fixedDeltaTime));
+            }
+        }
+
+        private void WriteAnimSpeed(float target)
         {
             if (animator == null) return;
             animator.SetFloat(SpeedHash, target, speedDampTime, Time.fixedDeltaTime);
+        }
+
+        private void WriteAnimStrafe(float x, float y)
+        {
+            if (animator == null) return;
+            animator.SetFloat(MoveXHash, x, strafeDampTime, Time.fixedDeltaTime);
+            animator.SetFloat(MoveYHash, y, strafeDampTime, Time.fixedDeltaTime);
         }
     }
 }
