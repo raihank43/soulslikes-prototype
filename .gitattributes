@@ -92,7 +92,7 @@ Packages/packages-lock.json linguist-generated
 *.ma                    lfs
 *.max                   lfs
 *.mb                    lfs
-*.obj                   lfs
+# *.obj                 lfs   # commented: LFS quota exhausted
 *.ply                   lfs
 *.skp                   lfs
 *.stl                   lfs
