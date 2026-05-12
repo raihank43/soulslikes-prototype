@@ -12,6 +12,7 @@ namespace Soulslike.Combat
         public bool IsDead => CurrentHealth <= 0;
 
         public event Action<int, int> HealthChanged;
+        public event Action Died;
 
         private void Awake()
         {
@@ -29,7 +30,7 @@ namespace Soulslike.Combat
             {
                 Debug.Log($"{name} died");
                 foreach (var c in GetComponentsInChildren<Collider>()) c.enabled = false;
-                gameObject.SetActive(false);
+                Died?.Invoke();
             }
         }
     }

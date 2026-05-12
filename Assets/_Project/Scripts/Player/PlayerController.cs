@@ -24,6 +24,7 @@ namespace Soulslike.Player
         [Header("References")]
         [SerializeField] private Transform cameraTransform;
         [SerializeField] private LockOnSystem lockOn;
+        [SerializeField] private PlayerHealth health;
 
         private Rigidbody rb;
         private PlayerControls controls;
@@ -51,6 +52,10 @@ namespace Soulslike.Player
             {
                 lockOn = GetComponent<LockOnSystem>();
             }
+            if (health == null)
+            {
+                health = GetComponent<PlayerHealth>();
+            }
 
             controls = new PlayerControls();
             controls.Player.Move.performed += OnMovePerformed;
@@ -58,8 +63,23 @@ namespace Soulslike.Player
             controls.Player.Sprint.performed += OnSprintPerformed;
         }
 
-        private void OnEnable() => controls.Player.Enable();
-        private void OnDisable() => controls.Player.Disable();
+        private void OnEnable()
+        {
+            controls.Player.Enable();
+            if (health != null) health.Died += OnPlayerDied;
+        }
+
+        private void OnDisable()
+        {
+            controls.Player.Disable();
+            if (health != null) health.Died -= OnPlayerDied;
+        }
+
+        private void OnPlayerDied()
+        {
+            rb.linearVelocity = Vector3.zero;
+            enabled = false;
+        }
 
         private void OnDestroy()
         {

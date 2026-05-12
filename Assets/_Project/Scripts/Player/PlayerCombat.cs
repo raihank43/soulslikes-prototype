@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 using Soulslike.Input;
+using Soulslike.Combat;
 
 namespace Soulslike.Player
 {
@@ -10,6 +11,7 @@ namespace Soulslike.Player
         [Header("References")]
         [SerializeField] private Animator animator;
         [SerializeField] private PlayerStamina stamina;
+        [SerializeField] private PlayerHealth health;
 
         [Header("Costs")]
         [SerializeField] private float light1Cost = 22f;
@@ -35,14 +37,29 @@ namespace Soulslike.Player
         {
             if (animator == null) animator = GetComponentInChildren<Animator>();
             if (stamina == null) stamina = GetComponent<PlayerStamina>();
+            if (health == null) health = GetComponent<PlayerHealth>();
 
             controls = new PlayerControls();
             controls.Player.LightAttack.performed += OnLightAttackPressed;
             controls.Player.HeavyAttack.performed += OnHeavyAttackPressed;
         }
 
-        private void OnEnable() => controls.Player.Enable();
-        private void OnDisable() => controls.Player.Disable();
+        private void OnEnable()
+        {
+            controls.Player.Enable();
+            if (health != null) health.Died += OnPlayerDied;
+        }
+
+        private void OnDisable()
+        {
+            controls.Player.Disable();
+            if (health != null) health.Died -= OnPlayerDied;
+        }
+
+        private void OnPlayerDied()
+        {
+            enabled = false;
+        }
 
         private void OnDestroy()
         {

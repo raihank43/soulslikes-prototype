@@ -17,9 +17,9 @@ ModelImporter:
     removeConstantScaleCurves: 0
     motionNodeName: 
     animationImportErrors: 
-    animationImportWarnings: Event DisableHitbox has a time (2.607944) outside the
+    animationImportWarnings: Event DisableHitbox has a time (1.833333) outside the
       clip's valid range (0.000000..1.566667). It will never be firedEvent CloseComboWindow
-      has a time (3.410389) outside the clip's valid range (0.000000..1.566667).
+      has a time (2.000000) outside the clip's valid range (0.000000..1.566667).
       It will never be fired
     animationRetargetingWarnings: 
     animationDoRetargetingWarnings: 0
@@ -58,28 +58,28 @@ ModelImporter:
       bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
       curves: []
       events:
-      - time: 0.72220004
+      - time: 0.4
         functionName: OpenComboWindow
         data: 
         objectReferenceParameter: {instanceID: 0}
         floatParameter: 0
         intParameter: 0
         messageOptions: 0
-      - time: 0.84256667
+      - time: 0.55
         functionName: EnableHitbox
         data: 
         objectReferenceParameter: {instanceID: 0}
         floatParameter: 0
         intParameter: 22
         messageOptions: 0
-      - time: 1.5647666
+      - time: 1.1
         functionName: DisableHitbox
         data: 
         objectReferenceParameter: {instanceID: 0}
         floatParameter: 0
         intParameter: 0
         messageOptions: 0
-      - time: 2.0462334
+      - time: 1.7
         functionName: CloseComboWindow
         data: 
         objectReferenceParameter: {instanceID: 0}

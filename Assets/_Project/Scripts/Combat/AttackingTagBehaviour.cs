@@ -9,6 +9,8 @@ namespace Soulslike.Combat
         private static readonly int AttackingTagHash = Animator.StringToHash("Attacking");
         private static readonly int LungeSpeedHash = Animator.StringToHash("AttackLungeSpeed");
 
+        private WeaponHitbox cachedHitbox;
+
         public override void OnStateEnter(Animator animator, AnimatorStateInfo stateInfo, int layerIndex)
         {
             animator.SetBool(IsAttackingHash, true);
@@ -16,6 +18,7 @@ namespace Soulslike.Combat
             // Lunge stays 0 by default; Animation Events drive it during the strike window only.
             animator.SetFloat(LungeSpeedHash, 0f);
             animator.applyRootMotion = true;
+            if (cachedHitbox == null) cachedHitbox = animator.GetComponentInChildren<WeaponHitbox>(true);
         }
 
         public override void OnStateExit(Animator animator, AnimatorStateInfo stateInfo, int layerIndex)
@@ -33,6 +36,10 @@ namespace Soulslike.Combat
             animator.ResetTrigger("LightAttack");
             animator.ResetTrigger("HeavyAttack");
             animator.applyRootMotion = false;
+            // Defensive: ensure the sword hitbox is off when leaving attack states.
+            // The DisableHitbox animation events on attack clips fire AFTER the state's exit time,
+            // so we cannot rely on them; the SMB is the source of truth for "no longer attacking".
+            if (cachedHitbox != null) cachedHitbox.Disable();
         }
     }
 }
