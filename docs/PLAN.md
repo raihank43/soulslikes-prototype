@@ -14,10 +14,10 @@
 
 _Last checkpoint: 2cab1eb (doc system adopted, full scan + lean consolidation)_
 
-- **Just shipped:** Day 4.5 — mutant moveset depth (Swipe + JumpAttack, combo chains, distance-banded selection, wind-up tells, jump cooldown), then adopted the growing-docs system (lean CLAUDE.md + `docs/`). All pushed to `origin/main`.
-- **In flight:** nothing — clean stopping point. The combat loop (player attacks, enemy AI, mutual damage/death) is fully playable.
-- **Next:** Day 5 — dodge roll with i-frames (`docs/day-1-to-7-plan.md`, Day 5 section). The committed enemy attacks built in Day 4.5 are exactly what the roll exists to evade.
-- **Start here:** `docs/day-1-to-7-plan.md` (Day 5), `docs/feature-player.md`, `docs/feature-ai.md`.
+- **Just shipped:** Day 4.5 — mutant moveset depth (Swipe + JumpAttack, combo chains, distance-banded selection, wind-up tells, jump cooldown), then adopted the growing-docs system (lean CLAUDE.md + `docs/`). All pushed to `origin/main`. Then ran `/rethink` on the **build feedback loop** and adopted a test/observability plan (see `docs/proposals/2026-06-21-rethink.md`).
+- **In flight:** nothing built yet — the feedback-loop infra plan is decided but on paper. The combat loop (player attacks, enemy AI, mutual damage/death) is fully playable.
+- **Next (revised order):** **P0** asmdef split → **P2** asset-import verifier → **Day 5** dodge roll, shipped *with* **P1** i-frame/combat-invariant PlayMode tests. Then **P3** screenshot verification + **P4** runtime telemetry. Rationale: our iteration count came from *invisible feedback gaps*, not logic errors — close the loops first so Day 5+ ship with less back-and-forth.
+- **Start here:** `docs/proposals/2026-06-21-rethink.md` (the why + each proposal), then `docs/day-1-to-7-plan.md` (Day 5), `docs/feature-player.md`, `docs/feature-ai.md`.
 
 ## Vision
 
@@ -45,6 +45,20 @@ Scope is intentionally interconnected hand-crafted areas (DS1-style), **not** op
 
 Status values: `planned` | `in-progress` | `done` | `cut`
 
+## Tooling & Test Infrastructure
+
+Adopted from `/rethink` 2026-06-21 to close the build feedback loop. Order is the agreed sequence.
+
+| Item | Priority | Status | Doc |
+|------|----------|--------|-----|
+| P0 — first-party asmdef split (test prereq) | High | planned | [proposal](proposals/2026-06-21-rethink.md) |
+| P2 — asset-import verifier (FBX reset guard) | High | planned | [proposal](proposals/2026-06-21-rethink.md) |
+| P1 — PlayMode combat-invariants suite | High | planned | [proposal](proposals/2026-06-21-rethink.md) · lands with Day 5 |
+| P3 — screenshot-based visual verification | Medium | planned | [proposal](proposals/2026-06-21-rethink.md) |
+| P4 — runtime combat telemetry | Medium | planned | [proposal](proposals/2026-06-21-rethink.md) |
+| P5 — `/playtest` project skill | Low | planned | [proposal](proposals/2026-06-21-rethink.md) · build last |
+| P6 — deterministic combat-sim mode | Low | conditional | [proposal](proposals/2026-06-21-rethink.md) · only if P1 flaky |
+
 ## Decisions Log
 
 Record every significant decision so future-you (or post-compaction-you) knows WHY things are the way they are.
@@ -57,6 +71,9 @@ Record every significant decision so future-you (or post-compaction-you) knows W
 | Per-attack cooldown to throttle signature moves (jump) | Lower probability alone still spams because AI re-rolls each cooldown | Day 4.5 |
 | Phased moveset: foundation first, sophistication later | Ship a working loop before adding moves; deferred turn-in-place/mirrored clips | Day 4 |
 | Adopted growing-docs; consolidated CLAUDE.md to a lean system prompt | Per-day notes relocated verbatim to `docs/build-journal.md`; `docs/feature-*.md` + code are the maintained truth | 2026-06-21 |
+| Adopt a test + observability layer before resuming features (`/rethink`) | Journal analysis: iteration count was driven by *invisible feedback gaps* (silent FBX-import resets, dropped anim events, feel bugs only the user could see), not logic errors. Closing those loops lets Claude self-correct before a human round-trip. Scope: P0–P4 committed, P5 deferred, P6 conditional | 2026-06-21 |
+| i-frames (Day 5) ship *with* their PlayMode test (P1) | I-frame invulnerability is a binary, numeric property — perfectly testable and genuinely hard to verify by eye. Co-shipping the test makes the headline Day-5 feature provable, not vibes | 2026-06-21 |
+| Reuse installed test/observability stack; no new deps | Test Framework 1.6.0, Performance Testing, ScreenCapture module, and MCP `run_tests`/`execute_code` are already present — adding a 3rd-party test asset would be the generic-best-practice trap RULES warns against | 2026-06-21 |
 
 ## Rejected Ideas
 
