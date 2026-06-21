@@ -6,7 +6,9 @@ namespace Soulslike.Player
     public class RootMotionForwarder : MonoBehaviour
     {
         [SerializeField] private Rigidbody parentBody;
-        [SerializeField] private string[] activeTags = { "Attacking", "Dodging" };
+        // Attacks use baked root motion. Dodges do NOT — they're scripted in PlayerDodge
+        // (the Mixamo dodge clips travel diagonally; root-motion forwarding can't aim them).
+        [SerializeField] private string[] activeTags = { "Attacking" };
 
         private Animator anim;
 

@@ -18,7 +18,7 @@ _Last checkpoint: 2cab1eb (doc system adopted, full scan + lean consolidation)_
 - **In flight:** nothing — clean stopping point. Full combat loop now includes evasion.
 - **Next:** **Day 6 — the Sekiro parry** (`docs/day-1-to-7-plan.md`, Day 6; the centerpiece). Consider backfilling more **P1** invariants (damage table, cooldowns, range bands) and **P3/P4** (screenshot + telemetry) when useful.
 - **Start here:** `docs/day-1-to-7-plan.md` (Day 6), `docs/feature-player.md` (dodge + the P1 harness pattern), `docs/feature-combat.md`, `docs/feature-ai.md`. Background: `docs/proposals/2026-06-21-rethink.md`.
-- **Day 5 tuning left to the user:** dodge travel distance (~2.8m backward feels far for a step-dodge — scale baked root motion if so), i-frame window (0.2–0.55s), backward clip is longer (1.62s) than the others.
+- **Day 5 dodge fixed (post-playtest):** the Mixamo step-dodge clips travel ~56° diagonally, so dodges curved. Switched dodge movement from root motion to **scripted velocity** (`PlayerDodge` sets `rb.linearVelocity`); now dead-straight, ~3.1m at `dodgeSpeed=3.5`, facing preserved. Remaining tuning is feel only (`dodgeSpeed`/`dodgeDuration`/i-frame window); cosmetic foot-slide from the diagonal clips would clear up with cleaner straight-dodge clips.
 
 ## Vision
 

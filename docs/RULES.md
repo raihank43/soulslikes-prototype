@@ -38,6 +38,8 @@
 - **Assembly homes:** first-party runtime code → the `Soulslike` asmdef (`Assets/_Project/Soulslike.asmdef`); EditMode tests/editor tooling → `Soulslike.Tests.Editor`. A new MonoBehaviour goes in `Scripts/<area>/` and compiles into `Soulslike` automatically.
 - **After any FBX reimport, swap, or new clip wired into a controller, run the import verifier** — `run_tests` (EditMode, `Soulslike.Tests.Editor`) or `Tools > Soulslike > Verify Imports`. A newly added clip needs a baseline row in `ImportSpec.Clips` or the verifier fails by design (keeps the baseline complete). See `docs/feature-import-verifier.md`.
 - **Mixamo player clips all share the internal name `"mixamo.com"`** — never key a dictionary/lookup by `clip.name` for player animations; key by FBX asset path. (Mutant clips have distinct names; player clips don't.)
+- **Player Settings → "Run In Background" is ON** (committed in `ProjectSettings.asset`) so MCP play-tests run while the Unity window is unfocused. Keep it enabled; if play-tests hang waiting for focus, re-check it.
+- **To script-move the player's non-kinematic Rigidbody, set `linearVelocity`, not `MovePosition`.** `MovePosition` compounds velocity on a non-kinematic body and roughly doubles the travel (see the dodge in `feature-player.md`). Attacks are the exception — they use baked root motion via `RootMotionForwarder`, not scripting.
 
 ## Anti-Patterns
 

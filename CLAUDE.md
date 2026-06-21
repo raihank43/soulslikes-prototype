@@ -66,7 +66,7 @@ The macro rhythm for the day-by-day plan. These are trigger phrases — when I u
 1. Read this CLAUDE.md fully.
 2. Read the relevant day section in `docs/day-1-to-7-plan.md`.
 3. Confirm what we're building today and ask any clarifying questions.
-4. Enter plan mode for the day's feature. **Do not write code until I approve the plan.**
+4. Settle the design before coding: use **`/forge`** for any real design ambiguity (it interviews via `AskUserQuestion` and writes a durable feature doc); otherwise post a **short plan in chat** for a verbal go-ahead. **Avoid the built-in plan mode — its approval UI hangs in this terminal.** Don't write code until the approach is agreed.
 
 ### When I say "wrap up the day"
 1. Run `git status` and `git diff --stat`. Show me the output.

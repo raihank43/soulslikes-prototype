@@ -22,6 +22,7 @@ namespace Soulslike.Player
         [SerializeField] private Animator animator;
         [SerializeField] private PlayerStamina stamina;
         [SerializeField] private PlayerHealth health;
+        [SerializeField] private Rigidbody body;
         [SerializeField] private Transform cameraTransform;
 
         [Header("Tuning")]
@@ -29,6 +30,7 @@ namespace Soulslike.Player
         [SerializeField] private float iFrameStart = 0.2f;   // seconds into the dodge
         [SerializeField] private float iFrameEnd = 0.55f;    // seconds into the dodge
         [SerializeField] private float dodgeDuration = 0.9f; // input-lock length; set from clip length
+        [SerializeField] private float dodgeSpeed = 3.5f;    // scripted slide speed (m/s); distance ≈ speed × duration
         [SerializeField] private float dodgeCooldown = 0.3f;
 
         public bool IsDodging { get; private set; }
@@ -42,12 +44,14 @@ namespace Soulslike.Player
         private PlayerControls controls;
         private Coroutine routine;
         private float lastDodgeTime = -999f;
+        private Vector3 dodgeDir; // committed world XZ direction for the scripted slide
 
         private void Awake()
         {
             if (animator == null) animator = GetComponentInChildren<Animator>();
             if (stamina == null) stamina = GetComponent<PlayerStamina>();
             if (health == null) health = GetComponent<PlayerHealth>();
+            if (body == null) body = GetComponent<Rigidbody>();
             if (cameraTransform == null && Camera.main != null) cameraTransform = Camera.main.transform;
 
             controls = new PlayerControls();
@@ -83,6 +87,20 @@ namespace Soulslike.Player
 
         private void OnDodgePressed(InputAction.CallbackContext ctx) => TryDodge();
 
+        private void FixedUpdate()
+        {
+            // Scripted dodge travel: drive a constant horizontal velocity along the committed
+            // direction (NOT MovePosition — on a non-kinematic body MovePosition compounds velocity
+            // and doubles the distance). PlayerController yields the body while the Dodging tag is
+            // active, so we own movement here. Y is left to gravity.
+            if (IsDodging && body != null)
+            {
+                Vector3 v = dodgeDir * dodgeSpeed;
+                v.y = body.linearVelocity.y;
+                body.linearVelocity = v;
+            }
+        }
+
         /// <summary>Attempts a dodge. Returns true if one started. Called by input and by tests.</summary>
         public bool TryDodge()
         {
@@ -114,6 +132,9 @@ namespace Soulslike.Player
             {
                 worldDir = -transform.forward;
             }
+            worldDir.y = 0f;
+            worldDir.Normalize();
+            dodgeDir = worldDir; // committed: the body slides straight this way (PlayerDodge.FixedUpdate)
 
             // Local-space, snapped to the dominant cardinal -> the blend tree plays one clip ~100%.
             Vector3 local = transform.InverseTransformDirection(worldDir);
@@ -147,6 +168,13 @@ namespace Soulslike.Player
                 if (health != null) health.IsInvulnerable = false;
                 IsDodging = false;
                 routine = null;
+                // Kill any slide carryover so the dodge stops cleanly instead of drifting.
+                if (body != null)
+                {
+                    Vector3 v = body.linearVelocity;
+                    v.x = 0f; v.z = 0f;
+                    body.linearVelocity = v;
+                }
             }
         }
     }
