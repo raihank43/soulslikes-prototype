@@ -47,8 +47,9 @@ Refresh the `Last updated:` line (date or short commit SHA) on any doc you touch
 Refresh Unity via MCP, check the console for compile errors, and sanity-check/playtest the change before committing. Don't commit blind.
 
 ### Step 5: Commit and Push
-- Never stage secrets. Show `git status` + `git diff --stat` and wait for confirmation before committing (project rule).
-- Stage all changes including doc updates; write a clear `type(scope): description` message.
+- **Commit and push directly — no need to propose a commit message or wait for confirmation** (project rule, set 2026-06-21).
+- Never stage secrets, and don't stage `.claude/settings.local.json` (local-only).
+- Stage all relevant changes including doc updates; write a clear `type(scope): description` message.
 - Push only if a remote is configured (this repo: `origin`).
 
 ### When You Learn Something Cross-Cutting
@@ -71,7 +72,7 @@ The macro rhythm for the day-by-day plan. These are trigger phrases — when I u
 1. Run `git status` and `git diff --stat`. Show me the output.
 2. Run the Step 3 doc checklist for what we built — update the relevant `docs/feature-*.md`, `docs/PLAN.md` (status + Current Focus + decisions), and any of `ARCHITECTURE.md`/`RULES.md`/`README.md` that changed. Focus on non-obvious decisions and *why*, gotchas + fixes, and component contracts other features depend on — skip restating what the code already says.
 3. Wait for me to review and edit the proposed doc changes.
-4. After docs are saved, propose a commit message and run the commit.
+4. After docs are saved, commit and push directly (no message proposal / confirmation needed — see Step 5).
 5. Suggest 2–3 things I should playtest before tomorrow to catch regressions.
 
 ---
