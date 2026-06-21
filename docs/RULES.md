@@ -35,6 +35,9 @@
 - The Animator **caches the controller at Play start** — live edits to states/params during Play don't take effect on the running instance; Stop and re-enter Play.
 - **Don't commit** `Assets/_Recovery/` (MCP scene-backup snapshots) or `combat_log.txt` (debug log).
 - The Unity MCP CodeDom executor doesn't accept `using` directives or top-level local functions — fully-qualify types and inline lambdas via `System.Action`/`System.Func`.
+- **Assembly homes:** first-party runtime code → the `Soulslike` asmdef (`Assets/_Project/Soulslike.asmdef`); EditMode tests/editor tooling → `Soulslike.Tests.Editor`. A new MonoBehaviour goes in `Scripts/<area>/` and compiles into `Soulslike` automatically.
+- **After any FBX reimport, swap, or new clip wired into a controller, run the import verifier** — `run_tests` (EditMode, `Soulslike.Tests.Editor`) or `Tools > Soulslike > Verify Imports`. A newly added clip needs a baseline row in `ImportSpec.Clips` or the verifier fails by design (keeps the baseline complete). See `docs/feature-import-verifier.md`.
+- **Mixamo player clips all share the internal name `"mixamo.com"`** — never key a dictionary/lookup by `clip.name` for player animations; key by FBX asset path. (Mutant clips have distinct names; player clips don't.)
 
 ## Anti-Patterns
 

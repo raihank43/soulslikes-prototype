@@ -14,10 +14,10 @@
 
 _Last checkpoint: 2cab1eb (doc system adopted, full scan + lean consolidation)_
 
-- **Just shipped:** Day 4.5 — mutant moveset depth (Swipe + JumpAttack, combo chains, distance-banded selection, wind-up tells, jump cooldown), then adopted the growing-docs system (lean CLAUDE.md + `docs/`). All pushed to `origin/main`. Then ran `/rethink` on the **build feedback loop** and adopted a test/observability plan (see `docs/proposals/2026-06-21-rethink.md`).
-- **In flight:** nothing built yet — the feedback-loop infra plan is decided but on paper. The combat loop (player attacks, enemy AI, mutual damage/death) is fully playable.
-- **Next (revised order):** **P0** asmdef split → **P2** asset-import verifier → **Day 5** dodge roll, shipped *with* **P1** i-frame/combat-invariant PlayMode tests. Then **P3** screenshot verification + **P4** runtime telemetry. Rationale: our iteration count came from *invisible feedback gaps*, not logic errors — close the loops first so Day 5+ ship with less back-and-forth.
-- **Start here:** `docs/proposals/2026-06-21-rethink.md` (the why + each proposal), then `docs/day-1-to-7-plan.md` (Day 5), `docs/feature-player.md`, `docs/feature-ai.md`.
+- **Just shipped:** **P0 + P2 built & green** — first-party `Soulslike` runtime asmdef split, plus the asset-import verifier (EditMode test + `Tools/Soulslike/Verify Imports` menu) that guards the silent FBX-reset class. Test passes on the known-good baseline and is proven to catch a planted reset (see `docs/feature-import-verifier.md`). Before that: Day 4.5 moveset depth, growing-docs adoption, and the `/rethink` feedback-loop plan — all pushed to `origin/main`.
+- **In flight:** nothing — clean stopping point. Combat loop fully playable; import guard live.
+- **Next (revised order):** **Day 5** dodge roll, shipped *with* **P1** i-frame/combat-invariant PlayMode tests (the test asmdef + `run_tests` path are now proven, so P1 plugs straight in). Then **P3** screenshot verification + **P4** runtime telemetry.
+- **Start here:** `docs/day-1-to-7-plan.md` (Day 5), `docs/feature-import-verifier.md` (the test harness pattern P1 reuses), `docs/feature-player.md`, `docs/feature-ai.md`. Background: `docs/proposals/2026-06-21-rethink.md`.
 
 ## Vision
 
@@ -51,8 +51,8 @@ Adopted from `/rethink` 2026-06-21 to close the build feedback loop. Order is th
 
 | Item | Priority | Status | Doc |
 |------|----------|--------|-----|
-| P0 — first-party asmdef split (test prereq) | High | planned | [proposal](proposals/2026-06-21-rethink.md) |
-| P2 — asset-import verifier (FBX reset guard) | High | designed | [feature-import-verifier.md](feature-import-verifier.md) |
+| P0 — first-party asmdef split (test prereq) | High | done | [feature-import-verifier.md](feature-import-verifier.md) |
+| P2 — asset-import verifier (FBX reset guard) | High | done | [feature-import-verifier.md](feature-import-verifier.md) |
 | P1 — PlayMode combat-invariants suite | High | planned | [proposal](proposals/2026-06-21-rethink.md) · lands with Day 5 |
 | P3 — screenshot-based visual verification | Medium | planned | [proposal](proposals/2026-06-21-rethink.md) |
 | P4 — runtime combat telemetry | Medium | planned | [proposal](proposals/2026-06-21-rethink.md) |
@@ -74,6 +74,8 @@ Record every significant decision so future-you (or post-compaction-you) knows W
 | Adopt a test + observability layer before resuming features (`/rethink`) | Journal analysis: iteration count was driven by *invisible feedback gaps* (silent FBX-import resets, dropped anim events, feel bugs only the user could see), not logic errors. Closing those loops lets Claude self-correct before a human round-trip. Scope: P0–P4 committed, P5 deferred, P6 conditional | 2026-06-21 |
 | i-frames (Day 5) ship *with* their PlayMode test (P1) | I-frame invulnerability is a binary, numeric property — perfectly testable and genuinely hard to verify by eye. Co-shipping the test makes the headline Day-5 feature provable, not vibes | 2026-06-21 |
 | Reuse installed test/observability stack; no new deps | Test Framework 1.6.0, Performance Testing, ScreenCapture module, and MCP `run_tests`/`execute_code` are already present — adding a 3rd-party test asset would be the generic-best-practice trap RULES warns against | 2026-06-21 |
+| Import verifier keys its baseline by FBX path, checks `apparentSpeed` as an upper bound only | Every player Mixamo clip shares the internal name `"mixamo.com"` (name keys collide); idles/in-place attacks read `apparentSpeed≈0` so a lower bound false-fails. Both learned from dumping real import state before coding | 2026-06-21 |
+| Mutant Swiping/JumpAttack logged as a known length-inflation defect (not auto-fixed) | They're already inflated (5.33/10.29 vs ~2.0/2.8) from Day-4.5 importer events; gameplay unaffected (absolute-time waits). Re-import clean later, then bake true length as the guard. P2 is detect-only by decision | 2026-06-21 |
 
 ## Rejected Ideas
 

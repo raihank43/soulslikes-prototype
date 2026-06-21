@@ -89,7 +89,7 @@ The macro rhythm for the day-by-day plan. These are trigger phrases — when I u
 | `docs/feature-combat.md` | Hitboxes, health, lock-on (`Soulslike.Combat`) |
 | `docs/feature-player.md` | Locomotion, attacks, stamina (`Soulslike.Player`) |
 | `docs/feature-ui.md` | HUD bars + lock-on indicator (`Soulslike.UI`) |
-| `docs/feature-import-verifier.md` | Asset-import verifier (P2) — FBX reset guard; decided design, not yet built |
+| `docs/feature-import-verifier.md` | Asset-import verifier (P2) — FBX reset guard; built (EditMode test + Verify Imports menu) |
 | `docs/_feature-template.md` | Template to copy for a new feature doc |
 | `docs/build-journal.md` | Historical per-day build notes (Day 0–4.5) — finer detail than the feature docs; code + feature docs win on conflict |
 | `docs/day-1-to-7-plan.md` | The day-by-day build roadmap |
