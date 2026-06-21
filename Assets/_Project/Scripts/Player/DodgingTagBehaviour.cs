@@ -3,14 +3,18 @@ using UnityEngine;
 namespace Soulslike.Player
 {
     /// <summary>
-    /// SMB on the Dodge state. Keeps root motion OFF so the directional dodge clip plays
-    /// in place — PlayerDodge scripts the actual travel (the Mixamo dodge clips bake diagonal
-    /// root motion that can't be aimed by forwarding). Explicit so a stray applyRootMotion
-    /// can't leak the diagonal clip translation into the body.
+    /// SMB on the Dodge state. Enables root motion so RootMotionForwarder carries the dodge clip's
+    /// real baked travel (turn-and-roll: PlayerDodge rotates the character so that travel points
+    /// where the player aimed). Restores applyRootMotion off on exit.
     /// </summary>
     public class DodgingTagBehaviour : StateMachineBehaviour
     {
         public override void OnStateEnter(Animator animator, AnimatorStateInfo stateInfo, int layerIndex)
+        {
+            animator.applyRootMotion = true;
+        }
+
+        public override void OnStateExit(Animator animator, AnimatorStateInfo stateInfo, int layerIndex)
         {
             animator.applyRootMotion = false;
         }

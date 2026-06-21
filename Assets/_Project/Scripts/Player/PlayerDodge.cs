@@ -7,13 +7,16 @@ using Soulslike.Combat;
 namespace Soulslike.Player
 {
     /// <summary>
-    /// Dodge roll with i-frames. On the Player root. Directional: picks the dodge clip
-    /// matching the input direction (in character-local space) and lets that clip's baked
-    /// root motion carry the body — no rotation, so a locked-on dodge stays facing the target.
+    /// Dodge roll with i-frames. On the Player root. HYBRID: forward/back play a dive clip and
+    /// "turn-and-roll" (the character rotates so the dive's baked travel, clipTravelAngle, points
+    /// where you aimed — it turns INTO the roll, so facing isn't preserved mid-roll). Left/right
+    /// play directional sidestep clips and KEEP facing. Either way the clip's OWN root motion
+    /// carries the body (forwarded by RootMotionForwarder) — no scripted velocity, no body-vs-travel
+    /// mismatch. The clip is picked via DodgeX/DodgeY in a blend tree.
     ///
-    /// i-frames are driven by THIS coroutine on absolute time (not animation events): a
-    /// dropped EndIFrames event would leave the player permanently invulnerable. The window
-    /// is guaranteed to close (try/finally + OnDisable), and is deterministically testable.
+    /// i-frames are driven by THIS coroutine on absolute time (not animation events): a dropped
+    /// EndIFrames event would leave the player permanently invulnerable. The window is guaranteed
+    /// to close (try/finally + OnDisable), and is deterministically testable.
     /// </summary>
     [RequireComponent(typeof(PlayerStamina))]
     public class PlayerDodge : MonoBehaviour
@@ -30,7 +33,10 @@ namespace Soulslike.Player
         [SerializeField] private float iFrameStart = 0.2f;   // seconds into the dodge
         [SerializeField] private float iFrameEnd = 0.55f;    // seconds into the dodge
         [SerializeField] private float dodgeDuration = 0.9f; // input-lock length; set from clip length
-        [SerializeField] private float dodgeSpeed = 3.5f;    // scripted slide speed (m/s); distance ≈ speed × duration
+        [Tooltip("Direction (deg, relative to the character's facing) the dodge clip's baked root " +
+                 "motion travels. Measured from the clip; the character is rotated so this points " +
+                 "where you aimed. Standing Dive Forward measured ~-36.")]
+        [SerializeField] private float clipTravelAngle = -36f;
         [SerializeField] private float dodgeCooldown = 0.3f;
 
         public bool IsDodging { get; private set; }
@@ -44,7 +50,6 @@ namespace Soulslike.Player
         private PlayerControls controls;
         private Coroutine routine;
         private float lastDodgeTime = -999f;
-        private Vector3 dodgeDir; // committed world XZ direction for the scripted slide
 
         private void Awake()
         {
@@ -87,20 +92,6 @@ namespace Soulslike.Player
 
         private void OnDodgePressed(InputAction.CallbackContext ctx) => TryDodge();
 
-        private void FixedUpdate()
-        {
-            // Scripted dodge travel: drive a constant horizontal velocity along the committed
-            // direction (NOT MovePosition — on a non-kinematic body MovePosition compounds velocity
-            // and doubles the distance). PlayerController yields the body while the Dodging tag is
-            // active, so we own movement here. Y is left to gravity.
-            if (IsDodging && body != null)
-            {
-                Vector3 v = dodgeDir * dodgeSpeed;
-                v.y = body.linearVelocity.y;
-                body.linearVelocity = v;
-            }
-        }
-
         /// <summary>Attempts a dodge. Returns true if one started. Called by input and by tests.</summary>
         public bool TryDodge()
         {
@@ -109,16 +100,19 @@ namespace Soulslike.Player
             if (Time.time - lastDodgeTime < dodgeCooldown) return false;
             if (stamina != null && !stamina.TrySpend(staminaCost)) return false;
 
-            SetDodgeDirection();
+            AimDodge();
             if (animator != null) animator.SetTrigger(DodgeTriggerHash);
             lastDodgeTime = Time.time;
             routine = StartCoroutine(DodgeRoutine());
             return true;
         }
 
-        private void SetDodgeDirection()
+        // Hybrid aim: forward/back play the dive and turn-and-roll (rotate so the dive's baked travel
+        // points where you aimed); left/right play the directional sidestep clips and KEEP facing
+        // (their own root motion carries the lateral hop — sidesteps shouldn't spin). DodgeX/DodgeY
+        // pick the clip in the blend tree.
+        private void AimDodge()
         {
-            // Desired world direction: camera-relative move input, or backward if neutral.
             Vector2 moveInput = controls != null ? controls.Player.Move.ReadValue<Vector2>() : Vector2.zero;
             Vector3 worldDir;
             if (moveInput.sqrMagnitude > 0.04f)
@@ -133,20 +127,26 @@ namespace Soulslike.Player
                 worldDir = -transform.forward;
             }
             worldDir.y = 0f;
-            worldDir.Normalize();
-            dodgeDir = worldDir; // committed: the body slides straight this way (PlayerDodge.FixedUpdate)
+            if (worldDir.sqrMagnitude < 0.0001f) return;
 
-            // Local-space, snapped to the dominant cardinal -> the blend tree plays one clip ~100%.
+            // Cardinal relative to current facing decides the clip: lateral = sidestep, else = dive.
             Vector3 local = transform.InverseTransformDirection(worldDir);
-            float x = local.x, y = local.z;
-            if (Mathf.Abs(x) > Mathf.Abs(y)) { x = Mathf.Sign(x); y = 0f; }
-            else { x = 0f; y = Mathf.Sign(y); }
-
+            bool lateral = Mathf.Abs(local.x) > Mathf.Abs(local.z);
             if (animator != null)
             {
-                animator.SetFloat(DodgeXHash, x);
-                animator.SetFloat(DodgeYHash, y);
+                animator.SetFloat(DodgeXHash, lateral ? Mathf.Sign(local.x) : 0f);
+                animator.SetFloat(DodgeYHash, lateral ? 0f : Mathf.Sign(local.z));
             }
+
+            if (!lateral)
+            {
+                // Forward/back roll: rotate so the dive's baked travel (clipTravelAngle) hits the aim.
+                float aimYaw = Mathf.Atan2(worldDir.x, worldDir.z) * Mathf.Rad2Deg;
+                Quaternion rot = Quaternion.Euler(0f, aimYaw - clipTravelAngle, 0f);
+                if (body != null) body.MoveRotation(rot);
+                else transform.rotation = rot;
+            }
+            // Left/right sidestep: keep facing; the clip's own root motion does the lateral hop.
         }
 
         private IEnumerator DodgeRoutine()
@@ -168,13 +168,6 @@ namespace Soulslike.Player
                 if (health != null) health.IsInvulnerable = false;
                 IsDodging = false;
                 routine = null;
-                // Kill any slide carryover so the dodge stops cleanly instead of drifting.
-                if (body != null)
-                {
-                    Vector3 v = body.linearVelocity;
-                    v.x = 0f; v.z = 0f;
-                    body.linearVelocity = v;
-                }
             }
         }
     }

@@ -39,7 +39,8 @@
 - **After any FBX reimport, swap, or new clip wired into a controller, run the import verifier** — `run_tests` (EditMode, `Soulslike.Tests.Editor`) or `Tools > Soulslike > Verify Imports`. A newly added clip needs a baseline row in `ImportSpec.Clips` or the verifier fails by design (keeps the baseline complete). See `docs/feature-import-verifier.md`.
 - **Mixamo player clips all share the internal name `"mixamo.com"`** — never key a dictionary/lookup by `clip.name` for player animations; key by FBX asset path. (Mutant clips have distinct names; player clips don't.)
 - **Player Settings → "Run In Background" is ON** (committed in `ProjectSettings.asset`) so MCP play-tests run while the Unity window is unfocused. Keep it enabled; if play-tests hang waiting for focus, re-check it.
-- **To script-move the player's non-kinematic Rigidbody, set `linearVelocity`, not `MovePosition`.** `MovePosition` compounds velocity on a non-kinematic body and roughly doubles the travel (see the dodge in `feature-player.md`). Attacks are the exception — they use baked root motion via `RootMotionForwarder`, not scripting.
+- **Attacks AND dodges move via baked root motion** (`RootMotionForwarder`, `activeTags = [Attacking, Dodging]`), not scripted velocity. If you ever DO script-move this non-kinematic Rigidbody, set `linearVelocity`, not `MovePosition` — `MovePosition` on a non-kinematic body compounds velocity and ~doubles the travel (learned during the scripted-dodge detour; see `feature-player.md`).
+- **Mixamo clips can have a body-vs-root-motion angle offset** (the dodge clips travel ~36–57° off their body facing). Screen a new travel clip by measuring `AnimationClip.averageSpeed`'s angle vs its expected direction; if offset, scripted-straight movement will skate — use the clip's real root motion (+ rotate to aim) or fix the clip in Blender. Most clips (locomotion, attacks) are fine.
 
 ## Anti-Patterns
 

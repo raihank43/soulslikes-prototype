@@ -93,9 +93,11 @@ namespace Soulslike.Tests
             ["Assets/_Project/Models/mutants/Mutant@Mutant Swiping.fbx"] = new ImportBaseline(AvatarMode.CreateFromThis, loop: false, lockXZ: false, lockY: true, lockRot: true),
             ["Assets/_Project/Models/mutants/Mutant@Mutant Jump Attack.fbx"] = new ImportBaseline(AvatarMode.CreateFromThis, loop: false, lockXZ: false, lockY: true, lockRot: true),
 
-            // --- Dodge (Day 5; CopyFromOther -> Y BotAvatar; keep directional travel, strip vertical) ---
-            ["Assets/_Project/Models/dodge/Y Bot@Standing Dodge Forward.fbx"] = new ImportBaseline(AvatarMode.CopyFromOther, loop: false, lockXZ: false, lockY: true, lockRot: false),
-            ["Assets/_Project/Models/dodge/Y Bot@Standing Dodge Backward.fbx"] = new ImportBaseline(AvatarMode.CopyFromOther, loop: false, lockXZ: false, lockY: true, lockRot: false),
+            // --- Dodge (Day 5; HYBRID, all use REAL root motion; CopyFromOther -> Y BotAvatar; lockY
+            //     strips vertical bob, XZ kept so the clips travel). Forward/back = dive (turn-and-roll);
+            //     left/right = directional sidesteps (keep facing). "Forward/Backward" dodge clips are
+            //     unused (left on disk). ---
+            ["Assets/_Project/Models/dodge/Y Bot@Standing Dive Forward.fbx"] = new ImportBaseline(AvatarMode.CopyFromOther, loop: false, lockXZ: false, lockY: true, lockRot: false),
             ["Assets/_Project/Models/dodge/Y Bot@Standing Dodge Left.fbx"] = new ImportBaseline(AvatarMode.CopyFromOther, loop: false, lockXZ: false, lockY: true, lockRot: false),
             ["Assets/_Project/Models/dodge/Y Bot@Standing Dodge Right.fbx"] = new ImportBaseline(AvatarMode.CopyFromOther, loop: false, lockXZ: false, lockY: true, lockRot: false),
         };
