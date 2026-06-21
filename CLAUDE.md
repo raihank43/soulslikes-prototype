@@ -104,3 +104,7 @@ Project conventions, naming, Unity-specific workflow rules, and anti-patterns li
 - **The Animator IS the combo state machine** — no script-side combo counter; transition conditions decide the graph.
 - **StateMachineBehaviours own per-state side effects** (root motion, flags) — Animation Events near a state's exit time get silently dropped.
 - After editing scripts, **refresh Unity via MCP and check the console** before claiming done. **Don't create new scenes** without asking. **Don't commit** `Assets/_Recovery/` or `combat_log.txt`.
+
+## Complex Decisions
+
+For brainstorming, architecture trade-offs, debugging gnarly issues, or any decision where you're weighing multiple competing approaches, reason it through step by step rather than answering off the cuff. The **sequential-thinking MCP** (`sequentialthinking`) is available in this environment — use it when the *thinking itself* is the hard part. Don't over-think routine work (following the per-change checklist, straightforward code, doc updates); reserve the deep reasoning for the moments that earn it.
