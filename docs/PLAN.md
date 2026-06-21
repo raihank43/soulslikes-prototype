@@ -52,7 +52,7 @@ Adopted from `/rethink` 2026-06-21 to close the build feedback loop. Order is th
 | Item | Priority | Status | Doc |
 |------|----------|--------|-----|
 | P0 — first-party asmdef split (test prereq) | High | planned | [proposal](proposals/2026-06-21-rethink.md) |
-| P2 — asset-import verifier (FBX reset guard) | High | planned | [proposal](proposals/2026-06-21-rethink.md) |
+| P2 — asset-import verifier (FBX reset guard) | High | designed | [feature-import-verifier.md](feature-import-verifier.md) |
 | P1 — PlayMode combat-invariants suite | High | planned | [proposal](proposals/2026-06-21-rethink.md) · lands with Day 5 |
 | P3 — screenshot-based visual verification | Medium | planned | [proposal](proposals/2026-06-21-rethink.md) |
 | P4 — runtime combat telemetry | Medium | planned | [proposal](proposals/2026-06-21-rethink.md) |
