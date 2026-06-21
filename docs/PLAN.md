@@ -12,9 +12,9 @@
 
 > The 30-second cold-start brief — so a fresh session (or a post-compaction one) can resume *without re-reading everything*. Kept current by `/checkpoint`. **Read this first**, then read only the docs the "Start here" line points to.
 
-_Last checkpoint: doc system adopted (full scan), commit 7ed2c71_
+_Last checkpoint: 2cab1eb (doc system adopted, full scan + lean consolidation)_
 
-- **Just shipped:** Day 4.5 — mutant moveset depth (Swipe + JumpAttack, combo chains, distance-banded selection, wind-up tells, jump cooldown). Pushed to `origin/main`.
+- **Just shipped:** Day 4.5 — mutant moveset depth (Swipe + JumpAttack, combo chains, distance-banded selection, wind-up tells, jump cooldown), then adopted the growing-docs system (lean CLAUDE.md + `docs/`). All pushed to `origin/main`.
 - **In flight:** nothing — clean stopping point. The combat loop (player attacks, enemy AI, mutual damage/death) is fully playable.
 - **Next:** Day 5 — dodge roll with i-frames (`docs/day-1-to-7-plan.md`, Day 5 section). The committed enemy attacks built in Day 4.5 are exactly what the roll exists to evade.
 - **Start here:** `docs/day-1-to-7-plan.md` (Day 5), `docs/feature-player.md`, `docs/feature-ai.md`.
@@ -56,6 +56,7 @@ Record every significant decision so future-you (or post-compaction-you) knows W
 | Enemy attack completion via absolute-time wait, not animation event | Unity inflates FBX clip length on reimport, drifting events past exit time | Day 4.5 |
 | Per-attack cooldown to throttle signature moves (jump) | Lower probability alone still spams because AI re-rolls each cooldown | Day 4.5 |
 | Phased moveset: foundation first, sophistication later | Ship a working loop before adding moves; deferred turn-in-place/mirrored clips | Day 4 |
+| Adopted growing-docs; consolidated CLAUDE.md to a lean system prompt | Per-day notes relocated verbatim to `docs/build-journal.md`; `docs/feature-*.md` + code are the maintained truth | 2026-06-21 |
 
 ## Rejected Ideas
 
