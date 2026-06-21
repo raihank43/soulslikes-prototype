@@ -30,7 +30,7 @@ namespace Soulslike.Player
         private PlayerControls controls;
         private Vector2 moveInput;
         private bool sprintToggled;
-        private bool wasAttacking;
+        private bool wasActionLocked;
 
         private static readonly int SpeedHash    = Animator.StringToHash("Speed");
         private static readonly int MoveXHash    = Animator.StringToHash("MoveX");
@@ -103,20 +103,24 @@ namespace Soulslike.Player
             bool isLocked = lockOn != null && lockOn.IsLocked;
             if (animator != null) animator.SetBool(IsLockedHash, isLocked);
 
-            bool isAttackingNow = animator != null && animator.GetCurrentAnimatorStateInfo(0).IsTag("Attacking");
-            if (isAttackingNow)
+            var currentState = animator != null ? animator.GetCurrentAnimatorStateInfo(0) : default;
+            bool isAttackingNow = animator != null && currentState.IsTag("Attacking");
+            bool isDodgingNow = animator != null && currentState.IsTag("Dodging");
+            if (isAttackingNow || isDodgingNow)
             {
-                if (!wasAttacking)
+                if (!wasActionLocked)
                 {
+                    // Kill locomotion velocity once on entry so it doesn't fight root motion.
                     Vector3 entryVel = rb.linearVelocity;
                     entryVel.x = 0f; entryVel.z = 0f;
                     rb.linearVelocity = entryVel;
                 }
-                wasAttacking = true;
-                if (isLocked) FaceTarget();
+                wasActionLocked = true;
+                // Attacks track the lock target; dodges keep their committed direction (no re-facing mid-roll).
+                if (isAttackingNow && isLocked) FaceTarget();
                 return;
             }
-            wasAttacking = false;
+            wasActionLocked = false;
 
             float h = moveInput.x;
             float v = moveInput.y;

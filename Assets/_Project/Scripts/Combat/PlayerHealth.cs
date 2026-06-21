@@ -11,6 +11,12 @@ namespace Soulslike.Combat
         public int MaxHealth => maxHealth;
         public bool IsDead => CurrentHealth <= 0;
 
+        /// <summary>
+        /// Single source of truth for i-frame state. Set by PlayerDodge during the
+        /// roll's invulnerability window; TakeDamage early-returns while true.
+        /// </summary>
+        public bool IsInvulnerable { get; set; }
+
         public event Action<int, int> HealthChanged;
         public event Action Died;
 
@@ -23,6 +29,7 @@ namespace Soulslike.Combat
         public void TakeDamage(int amount)
         {
             if (IsDead) return;
+            if (IsInvulnerable) return; // i-frames (dodge roll) — ignore the hit entirely
             CurrentHealth = Mathf.Max(0, CurrentHealth - amount);
             Debug.Log($"{name} took {amount} dmg → {CurrentHealth}/{maxHealth}");
             HealthChanged?.Invoke(CurrentHealth, maxHealth);

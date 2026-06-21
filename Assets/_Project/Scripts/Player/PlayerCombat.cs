@@ -27,6 +27,7 @@ namespace Soulslike.Player
         private static readonly int HeavyAttackHash  = Animator.StringToHash("HeavyAttack");
         private static readonly int ComboReadyHash   = Animator.StringToHash("ComboReady");
         private static readonly int AttackingTagHash = Animator.StringToHash("Attacking");
+        private static readonly int DodgingTagHash   = Animator.StringToHash("Dodging");
 
         private PlayerControls controls;
         private float lastAcceptedTime = -999f;
@@ -94,6 +95,7 @@ namespace Soulslike.Player
         private bool TryFireLight()
         {
             if (animator == null) return false;
+            if (IsDodging()) return false; // can't attack mid-roll
             if (Time.time - lastAcceptedTime < inputAcceptedLockout) return false;
 
             bool isAttacking = IsCurrentlyAttacking();
@@ -112,6 +114,7 @@ namespace Soulslike.Player
         private bool TryFireHeavy()
         {
             if (animator == null) return false;
+            if (IsDodging()) return false; // can't attack mid-roll
             if (Time.time - lastAcceptedTime < inputAcceptedLockout) return false;
             if (IsInCommittedAttack()) return false;
             if (!stamina.TrySpend(heavyCost)) return false;
@@ -136,6 +139,13 @@ namespace Soulslike.Player
         {
             if (animator.GetCurrentAnimatorStateInfo(0).tagHash == AttackingTagHash) return true;
             if (animator.IsInTransition(0) && animator.GetNextAnimatorStateInfo(0).tagHash == AttackingTagHash) return true;
+            return false;
+        }
+
+        private bool IsDodging()
+        {
+            if (animator.GetCurrentAnimatorStateInfo(0).tagHash == DodgingTagHash) return true;
+            if (animator.IsInTransition(0) && animator.GetNextAnimatorStateInfo(0).tagHash == DodgingTagHash) return true;
             return false;
         }
 

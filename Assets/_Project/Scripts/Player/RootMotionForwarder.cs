@@ -6,7 +6,7 @@ namespace Soulslike.Player
     public class RootMotionForwarder : MonoBehaviour
     {
         [SerializeField] private Rigidbody parentBody;
-        [SerializeField] private string activeTag = "Attacking";
+        [SerializeField] private string[] activeTags = { "Attacking", "Dodging" };
 
         private Animator anim;
 
@@ -19,7 +19,13 @@ namespace Soulslike.Player
         private void OnAnimatorMove()
         {
             if (anim == null || parentBody == null) return;
-            if (!anim.GetCurrentAnimatorStateInfo(0).IsTag(activeTag)) return;
+            var state = anim.GetCurrentAnimatorStateInfo(0);
+            bool active = false;
+            for (int i = 0; i < activeTags.Length; i++)
+            {
+                if (state.IsTag(activeTags[i])) { active = true; break; }
+            }
+            if (!active) return;
 
             // Vertical baked into Mixamo attack clips (up to 20cm on Heavy) lifts the
             // body off the ground. Y is owned by physics — feed the rb only XZ.

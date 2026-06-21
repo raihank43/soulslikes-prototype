@@ -21,6 +21,7 @@ The shared combat layer: weapon/enemy hitboxes, health for both sides, the lock-
 ## API / Interface
 - **`LockOnSystem`**: `Transform CurrentTarget`, `bool IsLocked`. Acquire = `Physics.OverlapSphere(acquireRadius=15, enemyMask)` filtered by camera frustum, scored by screen-space distance to viewport center + small distance penalty (`screenDist + dist*0.02`). Auto-releases on target death, beyond `releaseRadius=25`, or Sprint press. Right-stick flick switch is a logged **stub** (single enemy — nothing to switch to yet).
 - **`PlayerHealth` / `EnemyHealth`**: `TakeDamage(int)`, `event Action<int,int> HealthChanged(current, max)` (fired in Awake + every hit), `event Action Died` (once at 0). On death both disable child colliders; the body stays in scene for the death animation (no `SetActive(false)`).
+- **`PlayerHealth.IsInvulnerable`** (`bool`, get/set) — the single source of truth for dodge i-frames. `TakeDamage` early-returns while true. Set only by `PlayerDodge`'s coroutine over the roll's i-frame window (see `feature-player.md`); nothing else should write it.
 - **`WeaponHitbox`**: `Enable(int damage)` / `Disable()`. Collider disabled by default; `HashSet<EnemyHealth>` dedupes per swing. On `PlayerHitbox` layer (slot 9), collides with Enemy (slot 8) only.
 - **`AttackingTagBehaviour`** (SMB): on enter sets `IsAttacking=true`, `ComboReady=false`, `applyRootMotion=true`; on non-chain exit clears flags and calls `cachedHitbox.Disable()`.
 
@@ -38,3 +39,4 @@ The shared combat layer: weapon/enemy hitboxes, health for both sides, the lock-
 - Day 3: WeaponHitbox, EnemyHealth, AttackingTagBehaviour, AnimationEventRelay.
 - Day 4: PlayerHealth, EnemyHealth.Died event (body stays for death anim), collider-disable on death.
 - Day 4.5: tightened player attack event windows; AttackingTagBehaviour hitbox-off backstop.
+- Day 5: `PlayerHealth.IsInvulnerable` for dodge i-frames (TakeDamage early-returns).

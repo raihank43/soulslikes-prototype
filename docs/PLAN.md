@@ -14,10 +14,11 @@
 
 _Last checkpoint: 2cab1eb (doc system adopted, full scan + lean consolidation)_
 
-- **Just shipped:** **P0 + P2 built & green** — first-party `Soulslike` runtime asmdef split, plus the asset-import verifier (EditMode test + `Tools/Soulslike/Verify Imports` menu) that guards the silent FBX-reset class. Test passes on the known-good baseline and is proven to catch a planted reset (see `docs/feature-import-verifier.md`). Before that: Day 4.5 moveset depth, growing-docs adoption, and the `/rethink` feedback-loop plan — all pushed to `origin/main`.
-- **In flight:** nothing — clean stopping point. Combat loop fully playable; import guard live.
-- **Next (revised order):** **Day 5** dodge roll, shipped *with* **P1** i-frame/combat-invariant PlayMode tests (the test asmdef + `run_tests` path are now proven, so P1 plugs straight in). Then **P3** screenshot verification + **P4** runtime telemetry.
-- **Start here:** `docs/day-1-to-7-plan.md` (Day 5), `docs/feature-import-verifier.md` (the test harness pattern P1 reuses), `docs/feature-player.md`, `docs/feature-ai.md`. Background: `docs/proposals/2026-06-21-rethink.md`.
+- **Just shipped:** **Day 5 — dodge roll with i-frames, shipped with its P1 test.** Directional dodge (4 Mixamo step-dodge clips → `Dodge` 2D blend tree, baked root motion, no rotation), i-frames on a guaranteed-to-end coroutine writing `PlayerHealth.IsInvulnerable`, `Dodging` tag locks input. P1 PlayMode suite (`Soulslike.Tests.Play`) proves i-frames + the stamina gate — 4 green. Verified working end-to-end in Play (trigger → state → root motion → recover). Before that: P0 asmdef split + P2 import verifier (both green); Day 4.5; growing-docs; the `/rethink` plan — all on `origin/main`.
+- **In flight:** nothing — clean stopping point. Full combat loop now includes evasion.
+- **Next:** **Day 6 — the Sekiro parry** (`docs/day-1-to-7-plan.md`, Day 6; the centerpiece). Consider backfilling more **P1** invariants (damage table, cooldowns, range bands) and **P3/P4** (screenshot + telemetry) when useful.
+- **Start here:** `docs/day-1-to-7-plan.md` (Day 6), `docs/feature-player.md` (dodge + the P1 harness pattern), `docs/feature-combat.md`, `docs/feature-ai.md`. Background: `docs/proposals/2026-06-21-rethink.md`.
+- **Day 5 tuning left to the user:** dodge travel distance (~2.8m backward feels far for a step-dodge — scale baked root motion if so), i-frame window (0.2–0.55s), backward clip is longer (1.62s) than the others.
 
 ## Vision
 
@@ -38,7 +39,7 @@ Scope is intentionally interconnected hand-crafted areas (DS1-style), **not** op
 | Melee combat (light/heavy, combos, stamina) | High | done | [feature-player.md](feature-player.md) |
 | Health + HUD bars | High | done | [feature-ui.md](feature-ui.md) |
 | Enemy AI (the Mutant) | High | done | [feature-ai.md](feature-ai.md) |
-| Dodge roll with i-frames | High | planned | _Day 5_ |
+| Dodge roll with i-frames | High | done | [feature-player.md](feature-player.md) |
 | Sekiro parry / posture | High | planned | _Day 6_ |
 | Death, respawn, combat HUD polish | Medium | planned | _Day 7_ |
 | Turn-in-place strafe + mirrored turn clips | Low | planned | _deferred polish_ |
@@ -53,7 +54,7 @@ Adopted from `/rethink` 2026-06-21 to close the build feedback loop. Order is th
 |------|----------|--------|-----|
 | P0 — first-party asmdef split (test prereq) | High | done | [feature-import-verifier.md](feature-import-verifier.md) |
 | P2 — asset-import verifier (FBX reset guard) | High | done | [feature-import-verifier.md](feature-import-verifier.md) |
-| P1 — PlayMode combat-invariants suite | High | planned | [proposal](proposals/2026-06-21-rethink.md) · lands with Day 5 |
+| P1 — PlayMode combat-invariants suite | High | started | [feature-player.md](feature-player.md) · i-frame + stamina-gate tests (`Soulslike.Tests.Play`); more invariants to backfill |
 | P3 — screenshot-based visual verification | Medium | planned | [proposal](proposals/2026-06-21-rethink.md) |
 | P4 — runtime combat telemetry | Medium | planned | [proposal](proposals/2026-06-21-rethink.md) |
 | P5 — `/playtest` project skill | Low | planned | [proposal](proposals/2026-06-21-rethink.md) · build last |
@@ -76,6 +77,8 @@ Record every significant decision so future-you (or post-compaction-you) knows W
 | Reuse installed test/observability stack; no new deps | Test Framework 1.6.0, Performance Testing, ScreenCapture module, and MCP `run_tests`/`execute_code` are already present — adding a 3rd-party test asset would be the generic-best-practice trap RULES warns against | 2026-06-21 |
 | Import verifier keys its baseline by FBX path, checks `apparentSpeed` as an upper bound only | Every player Mixamo clip shares the internal name `"mixamo.com"` (name keys collide); idles/in-place attacks read `apparentSpeed≈0` so a lower bound false-fails. Both learned from dumping real import state before coding | 2026-06-21 |
 | Mutant Swiping/JumpAttack logged as a known length-inflation defect (not auto-fixed) | They're already inflated (5.33/10.29 vs ~2.0/2.8) from Day-4.5 importer events; gameplay unaffected (absolute-time waits). Re-import clean later, then bake true length as the guard. P2 is detect-only by decision | 2026-06-21 |
+| Dodge i-frames driven by a coroutine on absolute time, not animation events | A dropped `EndIFrames` event would leave the player permanently invulnerable; coroutine + try/finally guarantees the window closes, and makes it deterministically P1-testable without the animator | Day 5 |
+| Directional dodge: 4 step-dodge clips in a `Dodge` 2D blend tree, character does NOT rotate | Each clip carries its own local-space baked root motion, so selecting the clip by local input direction dodges correctly while keeping facing (locked-on stays on target); rotating would curve the dodge; scripted velocity reads as ice-skating | Day 5 |
 
 ## Rejected Ideas
 
