@@ -113,3 +113,11 @@ InitTestScene*.unity*
 # Debug logs
 /[Aa]ssets/combat_log.txt
 /[Aa]ssets/combat_log.txt.meta
+
+# Secrets — never commit
+.env
+.env.*
+*.key
+*.pem
+secrets.json
+credentials.json
