@@ -15,12 +15,22 @@ namespace Soulslike.AI
             if (agent == null) agent = GetComponentInParent<NavMeshAgent>();
         }
 
+        // Per-frame XZ multiplier applied to root motion. Used by EnemyAI to amplify
+        // a clip's baked translation (e.g., make the JumpAttack's leap travel farther).
+        // Y is untouched — applyRootMotion lock-Y already keeps the body grounded.
+        [System.NonSerialized] public float motionMultiplier = 1f;
+
         // Animator calls this whenever it would apply root motion. We gate on applyRootMotion
         // so non-root-motion states (Locomotion driven by NavMeshAgent) are unaffected.
         private void OnAnimatorMove()
         {
             if (anim == null || !anim.applyRootMotion) return;
             Vector3 delta = anim.deltaPosition;
+            if (motionMultiplier != 1f)
+            {
+                delta.x *= motionMultiplier;
+                delta.z *= motionMultiplier;
+            }
             if (agent != null && agent.enabled && agent.isOnNavMesh)
             {
                 agent.Move(delta);
