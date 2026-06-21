@@ -1,6 +1,6 @@
 # Asset Import Verifier
 
-_Last updated: 2026-06-21 (built + green) — recency signal, not a correctness guarantee. If the code has moved past this, trust the code._
+_Last updated: 2026-06-21 (1984e55; built + green, + Measure Clip Travel sibling tool) — recency signal, not a correctness guarantee. If the code has moved past this, trust the code._
 
 ## Description
 
@@ -39,6 +39,7 @@ Dumping the real import state before writing the baseline overturned three assum
 - `Assets/_Project/Tests/Editor/ImportSpec.cs` — `AvatarMode` enum, `ImportBaseline`/`ModelBaseline` structs, the universal-invariant constants (`MaxApparentSpeed`, `LengthTolerance`), and the per-asset baseline dictionaries (`SourceModels`, `Clips`) keyed by FBX path.
 - `Assets/_Project/Tests/Editor/ImportVerifier.cs` — discovery (walk controllers), the assertion logic, `BuildReport`, and the `Tools/Soulslike/Verify Imports` `[MenuItem]`.
 - `Assets/_Project/Tests/Editor/ImportVerifierTests.cs` — the `[Test]` `TrackedAssets_ImportConfig_MatchesBaseline`.
+- `Assets/_Project/Tests/Editor/ClipTravelMeasure.cs` — a sibling editor helper (not part of the verifier): **Tools ▸ Soulslike ▸ Measure Clip Travel** prints a clip's root-motion travel angle (`AnimationClip.averageSpeed`), used to screen dodge/roll clips for the body-vs-root-motion offset and read off `PlayerDodge.clipTravelAngle`. See `feature-player.md`.
 
 ## Dependencies
 

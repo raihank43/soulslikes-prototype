@@ -1,6 +1,6 @@
 # Architecture
 
-_Last updated: 7ed2c71 — recency signal, not a correctness guarantee. The folder tree and data flow below rot fastest; if they disagree with the repo, trust the repo._
+_Last updated: 2026-06-21 (1984e55) — recency signal, not a correctness guarantee. The folder tree and data flow below rot fastest; if they disagree with the repo, trust the repo._
 
 ## Tech Stack
 
@@ -29,7 +29,8 @@ soulslikes-prototype/
 │   │   ├── Models/              # Mixamo FBXs — Y Bot (player), mutants/, weapon packs
 │   │   ├── Materials/
 │   │   ├── UI/
-│   │   ├── Tests/Editor/        # Soulslike.Tests.Editor asmdef — import verifier (EditMode)
+│   │   ├── Tests/Editor/        # Soulslike.Tests.Editor — import verifier + Measure Clip Travel (EditMode)
+│   │   ├── Tests/Play/          # Soulslike.Tests.Play — P1 dodge i-frame tests (PlayMode)
 │   │   └── Soulslike.asmdef     # first-party runtime assembly (covers Scripts/ + Input/)
 │   └── Scenes/
 │       └── SampleScene.unity    # the one scene — player, mutant, arena, HUD, cameras
@@ -41,7 +42,7 @@ soulslikes-prototype/
 
 > Note: `_Project/` holds only the folders currently in use (Animations, Input, Materials, Models, Scripts, Tests, UI). Prefabs/VFX/Audio are conventions from CLAUDE.md that don't exist on disk yet. The active scene is `Assets/Scenes/SampleScene.unity`, not under `_Project/`.
 
-> **Assembly layout (since 2026-06-21):** all first-party runtime code compiles into the **`Soulslike`** assembly (asmdef at `_Project/` root, refs `Unity.InputSystem` + `Cinemachine` + `UnityEngine.UI`). EditMode tests live in **`Soulslike.Tests.Editor`** (refs `Soulslike` + the Test Framework). This split is what lets tests target first-party types; adding the asmdef did not break scene/prefab references (Unity binds MonoBehaviours by script GUID, unaffected by assembly membership). See `docs/feature-import-verifier.md`.
+> **Assembly layout (since 2026-06-21):** all first-party runtime code compiles into the **`Soulslike`** assembly (asmdef at `_Project/` root, refs `Unity.InputSystem` + `Cinemachine` + `UnityEngine.UI`). EditMode tests live in **`Soulslike.Tests.Editor`** (refs `Soulslike` + the Test Framework); PlayMode tests in **`Soulslike.Tests.Play`** (P1 dodge i-frame/combat invariants). This split is what lets tests target first-party types; adding the asmdef did not break scene/prefab references (Unity binds MonoBehaviours by script GUID, unaffected by assembly membership). See `docs/feature-import-verifier.md`.
 
 ## System Overview
 
